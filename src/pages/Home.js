@@ -1,6 +1,5 @@
-
 import React, { Component } from 'react';
-import { Link, Redirect } from 'react-router-dom';
+
 import authService from '../services/auth-service.js';
 import orgsReposService from '../services/organizationRepos-service.js';
 
@@ -9,16 +8,18 @@ class Home extends Component {
     organization: '',
     organizationRespositories: [], 
     repository: '',
-    recentSearchedOrganizations: [],
-    showSearchBar: true
+    repositoryDetails: {},
+    recentSearchedRepos: [],
+    showReposList: true,
+    showSearchBar: true,
+    showRecentSearched: true
   }
 
   componentDidMount() {
     authService.me()
     .then(user => {
-      console.log(user.recentSearchedOrganizations);
       this.setState({
-        recentSearchedOrganizations: user.recentSearchedOrganizations ? user.recentSearchedOrganizations : ''
+        recentSearchedRepos: user.recentSearchedRepos ? user.recentSearchedRepos : ''
       })
     })
   }
@@ -30,15 +31,41 @@ class Home extends Component {
     })
   }
 
-  submitRecentOrganization = (org) => {
-    const { organization, showSearchBar } = this.state;
-    orgsReposService.orgsRepos(org)
+  submitRecentRepos = (event) => {
+    event.preventDefault();
+    const orgAndRepo = event.target.value.split(',');
+    const org = orgAndRepo[0];
+    const repo = orgAndRepo[1];
+    const { organization, repository, showSearchBar, showRecentSearched} = this.state;
+    orgsReposService.repoDetails(org, repo)
     .then(response => {
       this.setState ({
-        organizationRespositories: response.listOfRepositories,
+        organization: org,
+        repository: repo,
+        repositoryDetails: response,
         showSearchBar: false,
+        showReposList: false,
+        showRecentSearched: false
       })
-      console.log(response)
+    })
+    .catch(error => {
+      console.log(error)
+    })
+  }
+
+  submitRepoDetails = (event) => {
+    event.preventDefault();
+    const repo = event.target.value;
+    const { repository, organization, repositoryDetails } = this.state;
+    orgsReposService.repoDetails(organization, repo)
+    .then(response => {
+      this.setState ({
+        repository: repo,
+        repositoryDetails: response,
+        showSearchBar: false,
+        showReposList: false
+      })
+      console.log(this.state)
     })
     .catch(error => {
       console.log(error)
@@ -47,6 +74,7 @@ class Home extends Component {
 
   submitOrganization = (event) => {
     event.preventDefault();
+    const org = event.target.value ? event.target.value : null;
     const { organization, showSearchBar } = this.state;
     orgsReposService.orgsRepos(organization)
     .then(response => {
@@ -54,7 +82,6 @@ class Home extends Component {
         organizationRespositories: response.listOfRepositories,
         showSearchBar: false,
       })
-      console.log(response)
     })
     .catch(error => {
       console.log(error)
@@ -62,55 +89,89 @@ class Home extends Component {
   }
 
   render() {
-    const { organization, repository, recentSearchedOrganizations, organizationRespositories, showSearchBar } = this.state;
+    const { organization, repository, recentSearchedRepos, organizationRespositories, repositoryDetails, showRecentSearched, showSearchBar, showReposList } = this.state;
     return (
-      <>
+      <div className="main-container">
+        <div>
+          <a href="/">
+            <h1 className="main-title">Repository information</h1>
+          </a>
+        </div>
         {
           showSearchBar ? 
-          <section>
-            <form onSubmit={this.submitOrganization} className="search-user-repos">
-              <label htmlFor="organization">Organization</label>
-              <input type="text" id='organization' onChange={this.handleOnChange} value={organization} name='organization' placeholder="organization" required/>
-              <button type="submit" className="button">Search</button>
-            </form>
-          </section>
+          <>
+            <section className="search-container">
+              <form onSubmit={this.submitOrganization} className="search-bar">
+                <input type="text" id='organization' onChange={this.handleOnChange} value={organization} name='organization' placeholder="Search an organization" className="input" required/>
+                <button type="submit" className="search-button">Search</button>
+              </form>
+            </section>
+            <h4 className="recent-searches-title">Recent searches</h4>
+          </>
           : null
         }
-        {
-          !organizationRespositories.length && recentSearchedOrganizations.length ? recentSearchedOrganizations.map(org => {
+        { 
+          organizationRespositories && showReposList ? organizationRespositories.map(repository => {
             return (
-              <form key={org}>
-                <button className="button" onClick={e => this.submitRecentOrganization(org)} value={org}>{org}</button>
-              </form>
+              <div key={repository.name} className="main-info-repo-card">
+                <div className="repo-main-info">
+                  <h3>Name: {repository.name}</h3>
+                  <h4>Description: {repository.description}</h4>
+                  <button onClick={e => this.submitRepoDetails(e)} value={repository.name} className="search-button">See details</button>
+                </div>
+              </div>
+            )
+          })
+          :
+          null
+        }
+        { 
+          repositoryDetails.name ?
+          <>
+            <div>
+              <h2>Repository details</h2>
+            </div> 
+            <article className="main-info-repo-card">
+              <a href={repositoryDetails.owner_url}>
+                <img alt={repositoryDetails.owner} src={repositoryDetails.ownerAvatarUrl} className="img"/>
+              </a>
+              <h4>Name: {repositoryDetails.name}</h4>
+              <h4>Description: {repositoryDetails.description}</h4>
+              <h4>Owner: {repositoryDetails.owner}</h4>
+              <h4 className="contributors-title">Top 3 contributors</h4>
+              <article className="1st">
+                <h5>Username: {repositoryDetails.contributors[0].username}</h5>
+                <h5>Contributions: {repositoryDetails.contributors[0].contributions}</h5>
+              </article>
+              <article className="2nd">
+                <h5>Username: {repositoryDetails.contributors[1].username}</h5>
+                <h5>Contributions: {repositoryDetails.contributors[1].contributions}</h5>
+              </article>
+              <article className="3rd">
+                <h5>Username: {repositoryDetails.contributors[2].username}</h5>
+                <h5>Contributions: {repositoryDetails.contributors[2].contributions}</h5>
+              </article>
+              <button className="search-button">
+                Go to repo
+                <a href={repositoryDetails.repoUrl}></a>
+              </button>
+            </article>
+          </>
+          :
+          null
+        }
+        {
+          !organizationRespositories.length && showRecentSearched && recentSearchedRepos.length ? recentSearchedRepos.map(repo => {
+            return (
+              <div className="recent-searched-container"> 
+                <button key={repo.name} className="recent-searched" onClick={e => this.submitRecentRepos(e)} value={[repo.organization, repo.name]} >Organization: {repo.organization}<br/>Name: {repo.name}</button>
+              </div>
             )
           })
           : 
           null
         }
-        {/* <section>
-          <form onSubmit={this.submitOrganization} className="search-user-repos">
-            <label htmlFor="organization">Organization</label>
-            <input type="text" id='organization' onChange={this.handleOnChange} value={organization} name='organization' placeholder="organization" required/>
-            <button type="submit" className="button">Search</button>
-          </form>
-        </section> */}
-        { 
-          organizationRespositories ? organizationRespositories.map(repository => {
-            return (
-              <div key={repository.name} className="contributor">
-                <ul>
-                  <li>
-                    <h3>{repository.name}</h3>
-                    <h4>{repository.description}</h4>
-                  </li>
-                </ul>
-              </div>
-            )
-          })
-          :
-          <h1>NONE</h1>
-        }
-      </>
+      </div>
     )
   }
 }

@@ -13,7 +13,7 @@ class OrgsReposService {
     .then(response => response.data)
   }
 
-  repodetails(owner, repo) {
+  repoDetails(owner, repo) {
     return this.orgs.get(`/${owner}/${repo}`)
     .then(response => response.data)
   }
