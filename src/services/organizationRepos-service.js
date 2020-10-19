@@ -3,7 +3,7 @@ import axios from 'axios';
 class OrgsReposService {
   constructor() {
     this.orgs = axios.create({
-      baseURL: 'http://localhost:8000/orgs',
+      baseURL: 'https://githubb-app.herokuapp.com/orgs',
       withCredentials: true,
     })
   }

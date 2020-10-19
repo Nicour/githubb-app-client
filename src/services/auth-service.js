@@ -3,7 +3,7 @@ import axios from 'axios';
 class AuthService {
   constructor() {
     this.auth = axios.create({
-      baseURL: 'http://localhost:8000',
+      baseURL: 'https://githubb-app.herokuapp.com',
       withCredentials: true,
     })
   }
