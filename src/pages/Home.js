@@ -36,7 +36,6 @@ class Home extends Component {
     const orgAndRepo = event.target.value.split(',');
     const org = orgAndRepo[0];
     const repo = orgAndRepo[1];
-    const { organization, repository, showSearchBar, showRecentSearched} = this.state;
     orgsReposService.repoDetails(org, repo)
     .then(response => {
       this.setState ({
@@ -56,7 +55,7 @@ class Home extends Component {
   submitRepoDetails = (event) => {
     event.preventDefault();
     const repo = event.target.value;
-    const { repository, organization, repositoryDetails } = this.state;
+    const { organization } = this.state;
     orgsReposService.repoDetails(organization, repo)
     .then(response => {
       this.setState ({
@@ -74,8 +73,7 @@ class Home extends Component {
 
   submitOrganization = (event) => {
     event.preventDefault();
-    const org = event.target.value ? event.target.value : null;
-    const { organization, showSearchBar } = this.state;
+    const { organization } = this.state;
     orgsReposService.orgsRepos(organization)
     .then(response => {
       this.setState ({
@@ -89,7 +87,7 @@ class Home extends Component {
   }
 
   render() {
-    const { organization, repository, recentSearchedRepos, organizationRespositories, repositoryDetails, showRecentSearched, showSearchBar, showReposList } = this.state;
+    const { organization, recentSearchedRepos, organizationRespositories, repositoryDetails, showRecentSearched, showSearchBar, showReposList } = this.state;
     return (
       <div className="main-container">
         <div>
@@ -151,10 +149,11 @@ class Home extends Component {
                 <h5>Username: {repositoryDetails.contributors[2].username}</h5>
                 <h5>Contributions: {repositoryDetails.contributors[2].contributions}</h5>
               </article>
-              <button className="search-button">
-                Go to repo
-                <a href={repositoryDetails.repoUrl}></a>
-              </button>
+                <a href={repositoryDetails.repoUrl}>
+                  <button className="search-button">
+                    Go to repo
+                  </button>
+                </a>
             </article>
           </>
           :
