@@ -3,18 +3,18 @@ import axios from 'axios';
 class OrgsReposService {
   constructor() {
     this.orgs = axios.create({
-      baseURL: 'https://githubb-app.herokuapp.com/orgs',
+      baseURL: 'https://githubb-app.herokuapp.com',
       withCredentials: true,
     })
   }
 
   orgsRepos(organization) {
-    return this.orgs.get(`/${organization}`)
+    return this.orgs.get(`/orgs/${organization}`)
     .then(response => response.data)
   }
 
   repoDetails(owner, repo) {
-    return this.orgs.get(`/${owner}/${repo}`)
+    return this.orgs.get(`/orgs/${owner}/${repo}`)
     .then(response => response.data)
   }
 }
