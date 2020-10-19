@@ -64,7 +64,6 @@ class Home extends Component {
         showSearchBar: false,
         showReposList: false
       })
-      console.log(this.state)
     })
     .catch(error => {
       console.log(error)
