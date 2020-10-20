@@ -95,7 +95,7 @@ class Home extends Component {
           </a>
         </div>
         {
-          showSearchBar ? 
+          showSearchBar && recentSearchedRepos.length ? 
           <>
             <section className="search-container">
               <form onSubmit={this.submitOrganization} className="search-bar">
@@ -105,6 +105,13 @@ class Home extends Component {
             </section>
             <h4 className="recent-searches-title">Recent searches</h4>
           </>
+          : showSearchBar && !recentSearchedRepos.length ?
+            <section className="search-container">
+              <form onSubmit={this.submitOrganization} className="search-bar">
+                <input type="text" id='organization' onChange={this.handleOnChange} value={organization} name='organization' placeholder="Search an organization" className="input" required/>
+                <button type="submit" className="search-button">Search</button>
+              </form>
+            </section>
           : null
         }
         { 
